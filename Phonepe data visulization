@@ -1,0 +1,254 @@
+import streamlit as st
+from streamlit_option_menu import option_menu
+import mysql.connector
+import pandas as pd
+import plotly.express as px
+import requests
+import json
+from streamlit_player import st_player
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM aggre_tran")
+table1=mycursor.fetchall()
+
+aggregate_transaction=pd.DataFrame(table1,columns=("States","Years","Quarter","Transaction_type","Transaction_count","Transaction_amount"))
+
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM agg_user")
+table1=mycursor.fetchall()
+
+aggregate_user=pd.DataFrame(table1,columns=("States","Years","Quarter","Brands","Transaction_count","Percentage"))
+
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM map_tras")
+table1=mycursor.fetchall()
+
+map_transaction=pd.DataFrame(table1,columns=("States","Years","Quarter","Districts","Transaction_count","Transaction_amount"))
+
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM map_user")
+table1=mycursor.fetchall()
+
+map_user=pd.DataFrame(table1,columns=("States","Years","Quarter","Districts","Registeruser","AppOpens"))
+
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM top_tran")
+table1=mycursor.fetchall()
+
+top_transaction=pd.DataFrame(table1,columns=("States","Years","Quarter","Pincodes","Transaction_count","Transaction_amount"))
+
+
+import mysql.connector
+connection = mysql.connector.connect(host="localhost",user="root",password="12345",database='Phonepe_data') 
+mycursor=connection.cursor()
+
+mycursor.execute("SELECT * FROM top_user")
+table1=mycursor.fetchall()
+
+top_users=pd.DataFrame(table1,columns=("States","Years","Quarter","Pincodes","RegisteredUsers"))
+
+def Transaction_amount_count_Y(df,year):
+
+    tacy=df[df["Years"]==year]
+    tacy.reset_index(drop=True,inplace=True)
+
+    tacyg=tacy.groupby("States")[["Transaction_count", "Transaction_amount"]].sum()
+    tacyg.reset_index(inplace=True)
+
+    fig_amount=px.bar(tacyg, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                    color_discrete_sequence=px.colors.sequential.Aggrnyl)
+    st.plotly_chart(fig_amount)
+
+    fig_count=px.bar(tacyg, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                    color_discrete_sequence=px.colors.sequential.Aggrnyl_r)
+    
+    st.plotly_chart(fig_count)
+
+    url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
+    response=requests.get(url)
+    data1=json.loads(response.content)
+    states_name=[]
+    for feature in data1["features"]:
+        states_name.append(feature["properties"]["ST_NM"])
+    states_name.sort()
+
+    fig_india_1=px.choropleth(tacyg,geojson= data1, locations="States", featureidkey="properties.ST_NM",
+                              color="Transaction_amount", color_continuous_scale="Rainbow",
+                              range_color=(tacyg["Transaction_amount"].min(),tacyg["Transaction_amount"].max()),
+                              hover_name="States", title= f"{year} TRANSACTION AMOUNT", fitbounds="locations",
+                              height=600,width=600)
+    fig_india_1.update_geos(visible=False)
+    st.plotly_chart(fig_india_1)
+
+    fig_india_2=px.choropleth(tacyg,geojson= data1, locations="States", featureidkey="properties.ST_NM",
+                              color="Transaction_count", color_continuous_scale="Rainbow",
+                              range_color=(tacyg["Transaction_count"].min(),tacyg["Transaction_count"].max()),
+                              hover_name="States", title= f"{year} TRANSACTION COUNT", fitbounds="locations",
+                              height=600,width=600)
+    fig_india_2.update_geos(visible=False)
+    st.plotly_chart(fig_india_2)
+
+
+# Aggregate user 
+
+def Transaction_user_count_Y(df,year):
+    aggy=df[df["Years"]==year]
+    aggy.reset_index(drop=True,inplace=True)
+    aggyr=pd.DataFrame(aggy.groupby("Brands")["Transaction_count"].sum())
+    aggyr.reset_index(inplace=True)
+
+    fig_bar_1=px.bar(aggyr, x="Brands", y="Transaction_count",title= "BRANDS AND TRANSCATION",
+                    width=800, color_discrete_sequence = px.colors.sequential.Burgyl)
+    st.plotly_chart(fig_bar_1)
+
+    return aggy
+
+# Map Trasaction
+
+def Transaction_map_count_Y(df,year):
+    maps=df[df["Years"] == year]
+    maps.reset_index(drop=True,inplace=True)
+
+    mapsr=maps.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
+    mapsr.reset_index(inplace=True)
+
+    fig_amount=px.bar(mapsr, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                    color_discrete_sequence=px.colors.sequential.Brwnyl_r)
+    st.plotly_chart(fig_amount)
+
+    fig_count=px.bar(mapsr, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                    color_discrete_sequence=px.colors.sequential.Darkmint)
+    st.plotly_chart(fig_count)
+
+# Map User
+    
+def Transaction_map_user_Y(df,year):
+    maps=df[df['Years']==year]
+    maps.reset_index(drop=True,inplace=True)
+
+
+    mapur=maps.groupby("States")[["Registeruser","AppOpens"]].sum()
+    mapur.reset_index(inplace=True)
+
+    fig_amount=px.area(mapur, x="States", y="Registeruser", title=f"{year} REGISTERUSER",
+                        color_discrete_sequence=px.colors.sequential.ice_r)
+    st.plotly_chart(fig_amount)
+
+    fig_amount=px.area(mapur, x="States", y="AppOpens", title=f"{year} APPOPENS",
+                        color_discrete_sequence=px.colors.sequential.ice)
+    st.plotly_chart(fig_amount)
+
+
+
+
+# top_transaction
+
+def Transaction_top_analysis_Y(df,year):
+    tops=df[df["Years"]==year]
+    tops.reset_index(drop=True,inplace=True)
+
+    toptr=tops.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
+    toptr.reset_index(inplace=True)
+
+    fig_amount=px.funnel(toptr,x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                            color_discrete_sequence=px.colors.sequential.Magenta)
+    st.plotly_chart(fig_amount)
+
+    fig_amount=px.funnel(toptr,x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Magenta_r)
+    st.plotly_chart(fig_amount)
+
+
+
+def Transaction_users_analysis_Y(df,year):
+    topu=df[df["Years"]==year]
+    topu.reset_index(drop=True,inplace=True)
+
+    topur=pd.DataFrame(topu.groupby(["States","Quarter"])["RegisteredUsers"].sum())
+    topur.reset_index(inplace=True)
+
+    fig_amount=px.bar(topu, x="Quarter", y="RegisteredUsers", color="Quarter",width=1000,height=800,
+                    color_discrete_sequence=px.colors.sequential.Sunset_r)
+    st.plotly_chart(fig_amount)
+
+#streamlit part 
+
+st.set_page_config(layout="wide")
+st.title("PHONEPE DATA VISUALIZATION AND EXPLORATION")
+
+with st.sidebar:
+    st.title("Main Menu")
+    select=st.radio("Menu",["HOME","DATA EXPLORATION"])
+
+if select == "HOME":
+    st.write("""PhonePe is an Indian multinational digital payments and 
+                 financial services company headquartered in Bengaluru,Karnataka, India. 
+                 PhonePe was founded in December 2015, by Sameer Nigam, Rahul Chari and Burzin Engineer. 
+                 The PhonePe app,based on the Unified Payments Interface (UPI), went live in August 2016.""""")
+
+    st_player("https://www.youtube.com/watch?v=zGlDkrNxDU8")
+
+    
+
+
+
+
+elif select == "DATA EXPLORATION":
+
+    tab1, tab2, tab3 =st.tabs(["Aggregated Analysis", "Map Analysis", "Top Analysis"])
+    
+    with tab1:
+       method = st.selectbox("Select The Method",["Transaction Analysis","User Anlaysis"])
+
+       if method == "Transaction Analysis":
+           years=st.slider("Select The Year",aggregate_transaction["Years"].min(),aggregate_transaction["Years"].max())
+           Transaction_amount_count_Y(aggregate_transaction,years)
+       
+       elif method == "User Anlaysis":
+           years=st.slider("Select The Year",aggregate_user["Years"].min(),aggregate_user["Years"].max())
+           agg_user_Y= Transaction_user_count_Y(aggregate_user,years)
+       
+
+    with tab2:
+        method2 = st.selectbox("Select The Method",["Map Analysis","Map user"])
+
+        if method2 == "Map Analysis":
+            years=st.slider("Select The Year", map_transaction["Years"].min(),map_transaction["Years"].max(),map_transaction["Years"].min())
+            Transaction_map_count_Y(map_transaction,years)
+    
+        elif method2 == "Map user":
+            years=st.slider("Select The Year", map_user["Years"].min(),map_user["Years"].max(),map_user["Years"].min())
+            Transaction_map_user_Y(map_user,years)
+    
+
+    with tab3:
+        method3 = st.selectbox("Select The Method",["Top Analysis","Top user"])
+
+        if method3 == "Top Analysis":
+            years=st.slider("Select The Year", top_transaction["Years"].min(),top_transaction["Years"].max(),top_transaction["Years"].max())
+            Transaction_top_analysis_Y(top_transaction,years)
+
+        elif method3 == "Top user":
+                
+                years=st.slider("Select The Year", top_users["Years"].min(),top_users["Years"].max(),top_users["Years"].max())
+                Transaction_users_analysis_Y(top_users,years)
+        
