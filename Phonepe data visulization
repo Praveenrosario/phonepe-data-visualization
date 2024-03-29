@@ -74,14 +74,19 @@ def Transaction_amount_count_Y(df,year):
     tacyg=tacy.groupby("States")[["Transaction_count", "Transaction_amount"]].sum()
     tacyg.reset_index(inplace=True)
 
-    fig_amount=px.bar(tacyg, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
-                    color_discrete_sequence=px.colors.sequential.Aggrnyl)
-    st.plotly_chart(fig_amount)
+    col1.col2=st.columns(2)
+    with col1:
 
-    fig_count=px.bar(tacyg, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
-                    color_discrete_sequence=px.colors.sequential.Aggrnyl_r)
-    
-    st.plotly_chart(fig_count)
+        fig_amount=px.bar(tacyg, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+        st.plotly_chart(fig_amount)
+
+    with col2:
+
+        fig_count=px.bar(tacyg, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Aggrnyl_r,height=650,width=600)
+        
+        st.plotly_chart(fig_count)
 
     url="https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson"
     response=requests.get(url)
@@ -107,6 +112,54 @@ def Transaction_amount_count_Y(df,year):
     fig_india_2.update_geos(visible=False)
     st.plotly_chart(fig_india_2)
 
+    return tacy
+
+#transaction_type
+
+def aggre_tran_transaction_type(df,state):
+    tacq= df[df["States"]==state]
+    tacq.reset_index(drop=True,inplace=True)
+
+    tacqt=tacq.groupby("Transaction_type")[["Transaction_count", "Transaction_amount"]].sum()
+    tacqt.reset_index(inplace=True)
+    
+    
+    col1,col2=st.columns(2)
+    with col1:
+
+        fig_pie_1=px.pie(data_frame= tacqt,names="Transaction_type", values="Transaction_amount",
+                    width=600, title=f"{state.upper()} TRANSACTION_AMOUNT",hole=0.5)
+        st.plotly_chart(fig_pie_1)
+    
+    with col2:
+        
+        fig_pie_2=px.pie(data_frame= tacqt,names="Transaction_type", values="Transaction_count",
+                    width=600, title=f"{state.upper()} TRANSACTION_COUNT", hole=0.5)
+        st.plotly_chart(fig_pie_2)
+
+
+def Transaction_amount_count_Y_Q(df,quarter):
+    tacy=df[df["Quarter"]==quarter]
+    tacy.reset_index(drop=True,inplace=True)
+
+    tacyg=tacy.groupby("States")[["Transaction_count", "Transaction_amount"]].min()
+    tacyg.reset_index(inplace=True)
+
+    col1,col2=st.columns(2)
+    with col1:
+
+        fig_amount=px.bar(tacyg, x="States", y="Transaction_amount", title=f"{quarter}TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Aggrnyl,height=650,width=600)
+        st.plotly_chart(fig_amount)
+
+    col1,col2=st.columns(2)
+    with col2:
+
+        fig_count=px.bar(tacyg, x="States", y="Transaction_count", title=f"{quarter} TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Aggrnyl_r,height=650,width=600)
+        st.plotly_chart(fig_count)
+
+    return tacy
 
 # Aggregate user 
 
@@ -122,6 +175,9 @@ def Transaction_user_count_Y(df,year):
 
     return aggy
 
+
+
+
 # Map Trasaction
 
 def Transaction_map_count_Y(df,year):
@@ -131,13 +187,48 @@ def Transaction_map_count_Y(df,year):
     mapsr=maps.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
     mapsr.reset_index(inplace=True)
 
-    fig_amount=px.bar(mapsr, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
-                    color_discrete_sequence=px.colors.sequential.Brwnyl_r)
-    st.plotly_chart(fig_amount)
+    col1,col2=st.columns(2)
+    with col1:
 
-    fig_count=px.bar(mapsr, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
-                    color_discrete_sequence=px.colors.sequential.Darkmint)
-    st.plotly_chart(fig_count)
+        fig_amount=px.bar(mapsr, x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Brwnyl_r,height=650,width=500)
+        st.plotly_chart(fig_amount)
+
+    col1,col2=st.columns(2)
+    with col2:
+
+        fig_count=px.bar(mapsr, x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Darkmint,height=650,width=500)
+        st.plotly_chart(fig_count)
+
+    return maps
+
+    
+
+
+def Transaction_map_count_Y_Q3(df,quarter):
+    maps=df[df["Quarter"] == quarter]
+    maps.reset_index(drop=True,inplace=True)
+
+    mapsr=maps.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
+    mapsr.reset_index(inplace=True)
+
+    col1,col2=st.columns(2)
+    with col1:
+
+        fig_amount=px.bar(mapsr, x="States", y="Transaction_amount", title=f"{quarter} TRANSACTION AMOUNT",
+                        color_discrete_sequence=px.colors.sequential.Brwnyl_r,height=650,width=500)
+        st.plotly_chart(fig_amount)
+
+    col1,col2=st.columns(2)
+    with col2:
+
+        fig_count=px.bar(mapsr, x="States", y="Transaction_count", title=f"{quarter} TRANSACTION COUNT",
+                        color_discrete_sequence=px.colors.sequential.Darkmint,height=650,width=500)
+        st.plotly_chart(fig_count)
+
+
+
 
 # Map User
     
@@ -169,15 +260,41 @@ def Transaction_top_analysis_Y(df,year):
     toptr=tops.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
     toptr.reset_index(inplace=True)
 
-    fig_amount=px.funnel(toptr,x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
-                            color_discrete_sequence=px.colors.sequential.Magenta)
-    st.plotly_chart(fig_amount)
+    col1,col2=st.columns(2)
+    with col1:
 
-    fig_amount=px.funnel(toptr,x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
-                        color_discrete_sequence=px.colors.sequential.Magenta_r)
-    st.plotly_chart(fig_amount)
+        fig_amount=px.funnel(toptr,x="States", y="Transaction_count", title=f"{year} TRANSACTION COUNT",
+                                color_discrete_sequence=px.colors.sequential.Magenta)
+        st.plotly_chart(fig_amount)
+
+    col1,col2=st.columns(2)
+    with col2:
+
+        fig_amount=px.funnel(toptr,x="States", y="Transaction_amount", title=f"{year} TRANSACTION AMOUNT",
+                            color_discrete_sequence=px.colors.sequential.Magenta_r)
+        st.plotly_chart(fig_amount)
 
 
+def Transaction_top_analysis_Y_Q3(df,quarter):
+    tops=df[df["Quarter"]==quarter]
+    tops.reset_index(drop=True,inplace=True)
+
+    toptr=tops.groupby("States")[["Transaction_count","Transaction_amount"]].sum()
+    toptr.reset_index(inplace=True)
+
+    col1,col2=st.columns(2)
+    with col1:
+
+        fig_amount=px.funnel(toptr,x="States", y="Transaction_count", title=f"{quarter} TRANSACTION COUNT",
+                                color_discrete_sequence=px.colors.sequential.Magenta)
+        st.plotly_chart(fig_amount)
+
+    col1,col2=st.columns(2)
+    with col2:
+
+        fig_amount=px.funnel(toptr,x="States", y="Transaction_amount", title=f"{quarter} TRANSACTION AMOUNT",
+                            color_discrete_sequence=px.colors.sequential.Magenta_r)
+        st.plotly_chart(fig_amount)
 
 def Transaction_users_analysis_Y(df,year):
     topu=df[df["Years"]==year]
@@ -220,8 +337,25 @@ elif select == "DATA EXPLORATION":
        method = st.selectbox("Select The Method",["Transaction Analysis","User Anlaysis"])
 
        if method == "Transaction Analysis":
-           years=st.slider("Select The Year",aggregate_transaction["Years"].min(),aggregate_transaction["Years"].max())
-           Transaction_amount_count_Y(aggregate_transaction,years)
+
+          col1,col2=st.columns(2)
+          with col1:
+              years=st.slider("Select The Year",aggregate_transaction["Years"].min(),aggregate_transaction["Years"].max())
+          aggre_tran_tac_y=Transaction_amount_count_Y(aggregate_transaction,years)
+
+          col1,col2=st.columns(2)
+          with col1:
+              states=st.selectbox("select the state", aggre_tran_tac_y["States"].unique())
+          aggre_tran_transaction_type(aggre_tran_tac_y,states)
+
+          col1,col2=st.columns(2)
+          with col1:
+              
+              quarters=st.selectbox("Select The Quarter",aggre_tran_tac_y["Quarter"].unique())
+          transaction_Q=Transaction_amount_count_Y_Q(aggre_tran_tac_y,quarters)
+
+
+
        
        elif method == "User Anlaysis":
            years=st.slider("Select The Year",aggregate_user["Years"].min(),aggregate_user["Years"].max())
@@ -232,9 +366,18 @@ elif select == "DATA EXPLORATION":
         method2 = st.selectbox("Select The Method",["Map Analysis","Map user"])
 
         if method2 == "Map Analysis":
-            years=st.slider("Select The Year", map_transaction["Years"].min(),map_transaction["Years"].max(),map_transaction["Years"].min())
-            Transaction_map_count_Y(map_transaction,years)
-    
+
+            col1,col2=st.columns(2)
+            with col1:
+                years=st.slider("Select The Year", map_transaction["Years"].min(),map_transaction["Years"].max(),map_transaction["Years"].min())
+            maps_qut=Transaction_map_count_Y(map_transaction,years)
+
+            col1,col2=st.columns(2)
+            with col1:
+                quarters=st.radio("Select The Quarter",maps_qut["Quarter"].unique())
+            transaction_Q2=Transaction_amount_count_Y_Q(maps_qut,quarters)
+        
+        
         elif method2 == "Map user":
             years=st.slider("Select The Year", map_user["Years"].min(),map_user["Years"].max(),map_user["Years"].min())
             Transaction_map_user_Y(map_user,years)
@@ -244,11 +387,20 @@ elif select == "DATA EXPLORATION":
         method3 = st.selectbox("Select The Method",["Top Analysis","Top user"])
 
         if method3 == "Top Analysis":
-            years=st.slider("Select The Year", top_transaction["Years"].min(),top_transaction["Years"].max(),top_transaction["Years"].max())
+
+            col1,col2=st.columns(2)
+            with col1:
+                years=st.slider("Select The Year", top_transaction["Years"].min(),top_transaction["Years"].max(),top_transaction["Years"].max())
             Transaction_top_analysis_Y(top_transaction,years)
+
+            col1,col2=st.columns(2)
+            with col1:
+                quarters=st.select_slider("Select The Quarter",maps_qut["Quarter"].unique())
+            transaction_Q2=Transaction_amount_count_Y_Q(maps_qut,quarters)
 
         elif method3 == "Top user":
                 
                 years=st.slider("Select The Year", top_users["Years"].min(),top_users["Years"].max(),top_users["Years"].max())
                 Transaction_users_analysis_Y(top_users,years)
+        
         
